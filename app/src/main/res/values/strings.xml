@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">哔哩下载助手</string>
+    <string name="action_settings">设置</string>
+    <string name="searchButtonText">开始读取</string>
+    <string name="inputTextHint">输入番剧地址</string>
+    <string name="history_settings">历史记录</string>
+    <string name="title_activity_history_settings">历史记录</string>
+    <string name="about">关于</string>
+</resources>
