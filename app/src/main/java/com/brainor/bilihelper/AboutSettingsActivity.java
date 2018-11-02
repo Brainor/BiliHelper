@@ -39,7 +39,12 @@ public class AboutSettingsActivity extends AppCompatActivity {
                 "</ol>\n" +
                 "<h1><a id=\"_12\"></a>引用&amp;开源</h1>\n" +
                 "<p>本程序使用了Biliplus的API, 具体可参考Biliplus的<a href=\"https://www.biliplus.com/api/README\">开放接口</a>.<br>\n" +
-                "网络通讯 <a href=\"http://square.github.io/okhttp/\">square/okhttp</a></p>", Html.FROM_HTML_MODE_LEGACY);
+                "网络通讯 <a href=\"http://square.github.io/okhttp/\">square/okhttp</a></p>"+
+                "<h1><a id=\"_15\"></a>已知问题</h1>\n" +
+                "<ol>\n" +
+                "<li>可能BiliPlus也没有相关资源的下载链接</li>\n" +
+                "<li>B站和BiliPlus提供的链接都是acgvideo.com域名下的, 需要特定的headers或者有IP限制, 会导致下载失败. 前者可以解决, 后者无法解决</li>\n" +
+                "</ol>\n", Html.FROM_HTML_MODE_LEGACY);
         aboutTextView.setText(styledText);
         aboutTextView.setMovementMethod(LinkMovementMethod.getInstance());
     }

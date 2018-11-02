@@ -26,7 +26,7 @@ class Api {
     }
 
     static String getMediaURL(long cid) {//获取视频下载地址
-        return BiliplusHost + "/BPplayurl.php?cid=" + cid;
+        return BiliplusHost + "/BPplayurl.php?cid=" + cid + "&otype=json";
     }
 
     static String getMediaURL2(Long aid, int page, VideoType videoType) {//BiliPlus接口

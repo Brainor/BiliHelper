@@ -308,44 +308,66 @@ https://bangumi.bilibili.com/view/web_api/season?season_id=441
             return "错误:" + e.getMessage();
         }
         seriesInfo.downloadSegmentInfo.clear();
-        try {//not done
-            XmlPullParser parser = Xml.newPullParser();
-            parser.setInput(new StringReader(HTMLBody));
-            DownloadSegmentInfo downSegInfo = new DownloadSegmentInfo();
-            while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
-                switch (parser.getEventType()) {
-                    case XmlPullParser.START_TAG:
-                        switch (parser.getName()) {
-                            case "length":
-                                downSegInfo = new DownloadSegmentInfo();
-                                parser.nextToken();
-                                downSegInfo.duration = Long.parseLong(parser.getText());
-                                parser.nextToken();
-                                break;
-                            case "size":
-                                parser.nextToken();
-                                downSegInfo.bytes = Long.parseLong(parser.getText());
-                                parser.nextToken();
-                                break;
-                            case "result":
-                                return "错误:需要Cookies";
-                            default:
-                                break;
-                        }
-                        break;
-                    case XmlPullParser.CDSECT:
-                        downSegInfo.url = parser.getText();
-                        seriesInfo.downloadSegmentInfo.add(downSegInfo);
-                        break;
-                    default:
-                        break;
-                }
-                parser.nextToken();
+        DownloadSegmentInfo downSegInfo;
+        try {
+            JSONObject HTML = new JSONObject(HTMLBody);
+            if (HTML.has("result") && HTML.getString("result").equals("error"))
+                return "错误:需要Cookies或视频已删除";
+            JSONArray jsonArray = HTML.getJSONArray("durl");
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject json = jsonArray.getJSONObject(i);
+                downSegInfo = new DownloadSegmentInfo();
+                downSegInfo.url = json.getString("url");
+                downSegInfo.duration = json.getLong("length");
+                downSegInfo.bytes = json.getLong("size");
+                seriesInfo.downloadSegmentInfo.add(downSegInfo);
             }
-            return "成功";
-        } catch (XmlPullParserException | IOException e) {
+            if(seriesInfo.downloadSegmentInfo.get(0).url.contains("acgvideo")) return "错误:链接需要跨域";
+            else return "成功";
+        } catch (JSONException e) {
             return "错误:" + e.getMessage();
         }
+        /*/XML语言
+            try {//not done
+                XmlPullParser parser = Xml.newPullParser();
+                parser.setInput(new StringReader(HTMLBody));
+                DownloadSegmentInfo downSegInfo = new DownloadSegmentInfo();
+                while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
+                    switch (parser.getEventType()) {
+                        case XmlPullParser.START_TAG:
+                            switch (parser.getName()) {
+                                case "length":
+                                    downSegInfo = new DownloadSegmentInfo();
+                                    parser.nextToken();
+                                    downSegInfo.duration = Long.parseLong(parser.getText());
+                                    parser.nextToken();
+                                    break;
+                                case "size":
+                                    parser.nextToken();
+                                    downSegInfo.bytes = Long.parseLong(parser.getText());
+                                    parser.nextToken();
+                                    break;
+                                case "result":
+                                    return "错误:需要Cookies";
+                                default:
+                                    break;
+                            }
+                            break;
+                        case XmlPullParser.CDSECT:
+                            downSegInfo.url = parser.getText();
+                            seriesInfo.downloadSegmentInfo.add(downSegInfo);
+                            break;
+                        default:
+                            break;
+                    }
+                    parser.nextToken();
+                }
+
+                return "成功";
+            } catch (XmlPullParserException | IOException e) {
+                return "错误:" + e.getMessage();
+            }
+        */
     }
 
     static String downloadVideo(SeriesInfo seriesInfo) {//要考虑AreaAnime和Anime

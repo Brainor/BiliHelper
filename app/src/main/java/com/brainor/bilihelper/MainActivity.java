@@ -79,9 +79,8 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, errMsg, Toast.LENGTH_LONG).show();
                     if (errMsg.contains("需要Cookies")) {
                         PopupWebview();
-
                     } else if (errMsg.contains("timeout"))
-                        Api.BiliplusHost = (Api.BiliplusHost == "https://www.biliplus.com" ? "https://backup.biliplus.com" : "https://www.biliplus.com");
+                        Api.BiliplusHost = "https://" + (Api.BiliplusHost == "https://www.biliplus.com" ? "backup" : "www") + ".biliplus.com";
                 }
 
                 @Override
@@ -207,8 +206,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void PopupWebview() {
-        AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
-        alertBuilder.setTitle("登陆BiliPlus");
+
         WebView webView = new WebView(this) {
             @Override
             public boolean onCheckIsTextEditor() {
@@ -219,29 +217,28 @@ public class MainActivity extends AppCompatActivity {
         CookieManager.getInstance().removeAllCookies(null);//进入该页面说明之前的cookies无效
         CookieManager.getInstance().flush();//不知道要不要
         webView.loadUrl(Api.loginBiliPlus());
-
-        alertBuilder.setView(webView);
-        alertBuilder.setNegativeButton("Close", (dialog, id) -> dialog.dismiss());
-        alertBuilder.show();
         webView.setWebViewClient(new WebViewClient() {
             @Override
             public void onPageFinished(WebView view, String url) {
                 String cookies = CookieManager.getInstance().getCookie("biliplus.com");
                 if (cookies != null && cookies.contains("access_key")) {
-                    SharedPreferences sharedPref = MainActivity.this.getPreferences(Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPref.edit();
-                    editor.putString("biliplus.com", cookies);
-                    editor.apply();
+                    MainActivity.this.getPreferences(Context.MODE_PRIVATE).edit()
+                            .putString("biliplus.com", cookies)
+                            .apply();
                     LoadCookies();
                 }
             }
         });
+        new AlertDialog.Builder(this)
+                .setTitle("获取BiliPlus cookies")
+                .setView(webView)
+                .setNegativeButton("Close", (dialog, id) -> dialog.dismiss())
+                .show();
     }
 
     void LoadCookies() {
-        SharedPreferences sharedPref = MainActivity.this.getPreferences(Context.MODE_PRIVATE);
         List<Cookie> cookieList = new ArrayList<>();
-        String cookies = sharedPref.getString("biliplus.com", "");
+        String cookies = MainActivity.this.getPreferences(Context.MODE_PRIVATE).getString("biliplus.com", "");
         if (Objects.equals(cookies, "")) return;
         for (String cookie : Objects.requireNonNull(cookies).split(";\\s")) {
             String[] cookieSplit = cookie.split("=");
@@ -279,7 +276,8 @@ public class MainActivity extends AppCompatActivity {
     void DownloadTask(String url, String filePath, String title) {
         DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-        //.addRequestHeader("Referer","https://www.bilibili.com/video/av14543079/");
+        request.addRequestHeader("Referer","https://www.bilibili.com/video/av14543079/")
+        .addRequestHeader("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:56.0) Gecko/20100101 Firefox/56.0");
         request.setTitle(title);
         request.setDestinationUri(Uri.fromFile(new File(filePath)));
         downloadManager.enqueue(request);
