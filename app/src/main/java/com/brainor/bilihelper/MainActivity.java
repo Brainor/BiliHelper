@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Point;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -53,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         Button searchButton = findViewById(R.id.searchButton);
         inputTextView = findViewById(R.id.inputText);
-        inputTextView.setText("av24267663");//调试用
+        inputTextView.setText("ss25696");//调试用
         infoListView = findViewById(R.id.infoListView);
         infoListView.setAdapter(new ArrayAdapter<>(MainActivity.this, R.layout.support_simple_spinner_dropdown_item, seriesInfo.epInfo));
         titleTextView = findViewById(R.id.titleTextView);
@@ -207,10 +208,17 @@ public class MainActivity extends AppCompatActivity {
 
     private void PopupWebview() {
 
+        Point point = new Point();
+        getWindowManager().getDefaultDisplay().getSize(point);
         WebView webView = new WebView(this) {
             @Override
             public boolean onCheckIsTextEditor() {
                 return true;
+            }
+
+            @Override
+            protected void onSizeChanged(int w, int h, int ow, int oh) {
+                super.onSizeChanged(w, (int) (point.y * 0.5), ow, oh);
             }
         };
         CookieManager.getInstance().setAcceptThirdPartyCookies(webView, true);
@@ -228,11 +236,13 @@ public class MainActivity extends AppCompatActivity {
                     LoadCookies();
                 }
             }
+
         });
-        new AlertDialog.Builder(this)
+        AlertDialog ad=new AlertDialog.Builder(this)
                 .setTitle("获取BiliPlus cookies")
                 .setView(webView)
                 .setNegativeButton("Close", (dialog, id) -> dialog.dismiss())
+
                 .show();
     }
 

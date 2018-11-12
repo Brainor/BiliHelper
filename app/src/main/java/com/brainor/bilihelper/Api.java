@@ -72,7 +72,8 @@ class Api {
 
     static String loginBiliPlus() {
         String loginUrl = BiliplusHost + "/login";
-        return "https://passport.bilibili.com/login?appkey=27eb53fc9058f8c3&api=" + loginUrl + "&sign=" + MD5("api=" + loginUrl + "c2ed53a74eeefe3cf99fbd01d8c9c375");
+        return  loginUrl;
+//        return "https://passport.bilibili.com/login?appkey=27eb53fc9058f8c3&api=" + loginUrl + "&sign=" + MD5("api=" + loginUrl + "c2ed53a74eeefe3cf99fbd01d8c9c375");
     }
 
     private static String MD5(String str) {
