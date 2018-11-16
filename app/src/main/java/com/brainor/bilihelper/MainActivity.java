@@ -123,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
             case R.id.action_settings:
+//                this.startActivity(new Intent(this,SettingsActivity.class));
                 return true;
             case R.id.history_settings:
                 this.startActivity(new Intent(this, HistorySettingsActivity.class));
@@ -254,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
             String[] cookieSplit = cookie.split("=");
             cookieList.add(new Cookie.Builder().name(cookieSplit[0]).value(cookieSplit[1]).domain("biliplus.com").build());
         }
-        Utility.cookieStore.put(Api.BiliplusHost.replace("https://", ""), cookieList);
+        Api.cookieStore.put(Api.BiliplusHost.replace("https://", ""), cookieList);
     }
 
     void LoadHistory() {

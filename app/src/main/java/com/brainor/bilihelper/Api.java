@@ -1,16 +1,41 @@
 package com.brainor.bilihelper;
 
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+
+import okhttp3.Cookie;
+import okhttp3.CookieJar;
+import okhttp3.HttpUrl;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 
 class Api {
+    static HashMap<String, List<Cookie>> cookieStore = new HashMap<>();
+    private static OkHttpClient okHttpClient = new OkHttpClient.Builder().cookieJar(new CookieJar() {//这里可以做cookie传递，保存等操作
+        @Override
+        public void saveFromResponse(@NonNull HttpUrl url, @NonNull List<Cookie> cookies) {//可以做保存cookies操作
+//            cookieStore.put(url.host(), cookies);
+        }
+
+        @Override
+        public List<Cookie> loadForRequest(@NonNull HttpUrl url) {//加载新的cookies
+            List<Cookie> cookies = cookieStore.get(url.host());
+            return cookies != null ? cookies : new ArrayList<>();
+        }
+    }).build();
+
     private static String appSecret = "94aba54af9065f71de72f5508f1cd42e";
     private static String appKey = "84956560bc028eb7";
     static String _appSecret_VIP = "9b288147e5474dd2aa67085f716c560d";
@@ -18,15 +43,34 @@ class Api {
     static String BiliplusHost = "https://www.biliplus.com";
 
     static String getSeasonIdURL(String ep_id) {//从ep_id网页获取season_id
-        return "https://www.bilibili.com/bangumi/play/ep" + ep_id;
+        //需要获得season_id
+        try {//从ep编码变成season_id编码
+            return Objects.requireNonNull(okHttpClient.newCall(new Request.Builder()
+                    .url("https://www.bilibili.com/bangumi/play/ep" + ep_id)
+                    .build()).execute().body()).string();
+        } catch (IOException | NullPointerException e) {
+            return "错误:" + e.getMessage();
+        }
     }
 
-    static String getSeriesInfoURL(long season_id) {//利用season_id获得SeriesInfo
-        return "https://bangumi.bilibili.com/view/web_api/season?season_id=" + season_id;
+    static String getSeriesInfoURL(String season_id) {//利用season_id获得SeriesInfo
+        try {//获得番剧数据
+            return Objects.requireNonNull(okHttpClient.newCall(new Request.Builder()
+                    .url("https://bangumi.bilibili.com/view/web_api/season?season_id=" + season_id)
+                    .build()).execute().body()).string();
+        } catch (IOException | NullPointerException e) {
+            return "错误:" + e.getMessage();
+        }
     }
 
     static String getMediaURL(long cid) {//获取视频下载地址
-        return BiliplusHost + "/BPplayurl.php?cid=" + cid + "&otype=json";
+        try {
+            return Objects.requireNonNull(okHttpClient.newCall(new Request.Builder()
+                    .url(BiliplusHost + "/BPplayurl.php?cid=" + cid + "&otype=json")
+                    .build()).execute().body()).string();
+        } catch (IOException | NullPointerException e) {
+            return "错误:" + e.getMessage();
+        }
     }
 
     static String getMediaURL2(Long aid, int page, VideoType videoType) {//BiliPlus接口
@@ -54,8 +98,20 @@ class Api {
         return url;
     }
 
-    static String getPageInfoURL(Long aid, int page) {////利用aid获得PageInfo
-        return "https://api.bilibili.com/view?appkey=" + appKey + "&id=" + aid + "&page=" + page;
+    static String getPageInfoURL(String aid, int page) {////利用aid获得PageInfo
+        String url;
+        try {//获得番剧数据
+            if (page > 0) {//av开头的id, 获取的是视频
+                url = "https://api.bilibili.com/view?appkey=" + appKey + "&id=" + aid + "&page=" + page;
+            } else {//page=0表示使用BiliPlus API查pageInfo
+                url = BiliplusHost + "/api/view?id=" + aid;
+            }
+            return Objects.requireNonNull(okHttpClient.newCall(new Request.Builder()
+                    .url(url)
+                    .build()).execute().body()).string();
+        } catch (IOException | NullPointerException e) {
+            return "错误:" + e.getMessage();
+        }
     }
 
     static String getPageInfoURL2(Long aid) {//利用aid在BiliPlus获得PageInfo
@@ -72,7 +128,7 @@ class Api {
 
     static String loginBiliPlus() {
         String loginUrl = BiliplusHost + "/login";
-        return  loginUrl;
+        return loginUrl;
 //        return "https://passport.bilibili.com/login?appkey=27eb53fc9058f8c3&api=" + loginUrl + "&sign=" + MD5("api=" + loginUrl + "c2ed53a74eeefe3cf99fbd01d8c9c375");
     }
 

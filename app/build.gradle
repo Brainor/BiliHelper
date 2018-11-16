@@ -21,7 +21,11 @@ android {
                 }
             }
         }
+        debug {
+            applicationIdSuffix '.debug'
+        }
     }
+
     buildToolsVersion '28.0.3'
     productFlavors {
     }

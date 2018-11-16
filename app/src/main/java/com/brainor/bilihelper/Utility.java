@@ -1,72 +1,17 @@
 package com.brainor.bilihelper;
 
-import android.support.annotation.NonNull;
-import android.util.Xml;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import okhttp3.Cookie;
-import okhttp3.CookieJar;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-
 class Utility {
-    /*
-    B站API: https://github.com/Vespa314/bilibili-api/blob/master/api.md
-    BiliPlus API: https://www.biliplus.com/api/README
-    appSecret = "560c52ccd288fed045859ed18bffd973";
-appKey = "1d8b6e7d45233436";
-appSecret_VIP = "9b288147e5474dd2aa67085f716c560d";
-appSecret_PlayUrl = "1c15888dc316e05a15fdd0a02ed6584f";
-http://api.bilibili.cn/view?id=28143592&appkey=1d8b6e7d45233436
-
-视频
-https://www.bilibili.com/video/av16785474/  aid:16785474
-视频信息API "http://app.bilibili.com/x/view?aid={0}&appkey=1d8b6e7d45233436&build=521000&ts={1}&sign=" + GetSign(uri)
-http://app.bilibili.com/x/view?aid=16785474&appkey=1d8b6e7d45233436&build=521000&ts=1538141261"&sign=" + GetSign(uri)
-
-
-
-番剧
-https://www.bilibili.com/bangumi/play/ep8206 ep_id:8206
-cid:27425145
-https//www.bilibili.com/bangumi/play/ss441/ 从网页中查找ss(\d+)
-番剧信息API https://bangumi.bilibili.com/view/web_api/season?season_id=$ss
-https://bangumi.bilibili.com/view/web_api/season?season_id=441
-
-
-     */
-    static HashMap<String, List<Cookie>> cookieStore = new HashMap<>();
-    private static OkHttpClient okHttpClient = new OkHttpClient.Builder().cookieJar(new CookieJar() {//这里可以做cookie传递，保存等操作
-        @Override
-        public void saveFromResponse(@NonNull HttpUrl url, @NonNull List<Cookie> cookies) {//可以做保存cookies操作
-//            cookieStore.put(url.host(), cookies);
-        }
-
-        @Override
-        public List<Cookie> loadForRequest(@NonNull HttpUrl url) {//加载新的cookies
-            List<Cookie> cookies = cookieStore.get(url.host());
-            return cookies != null ? cookies : new ArrayList<>();
-        }
-    }).build();
-
-
     /**
      * 将ep_id转成season_id
      *
@@ -75,49 +20,10 @@ https://bangumi.bilibili.com/view/web_api/season?season_id=441
      * value[1]返回出错信息或者ss+season_id
      */
     static String ep2sid(String id) {
-        String HTMLBody;
-        //需要获得season_id
-        try {//从ep编码变成season_id编码
-            HTMLBody = Objects.requireNonNull(okHttpClient.newCall(new Request.Builder()
-                    .url(Api.getSeasonIdURL(id))
-                    .build()).execute().body()).string();
-        } catch (IOException | NullPointerException e) {
-            return "错误:" + e.getMessage();
-        }
+        String HTMLBody = Api.getSeasonIdURL(id);
         Matcher m = Pattern.compile("ss\\d{1,9}").matcher(HTMLBody);
         if (m.find()) return m.group();
         else return "错误:ep有误";
-    }
-
-    private static String sid2EpJson(String season_id) {//字符串形式是因为直接从文本框中获取
-        String HTMLBody;
-        try {//获得番剧数据
-            HTMLBody = Objects.requireNonNull(okHttpClient.newCall(new Request.Builder()
-                    .url(Api.getSeriesInfoURL(Long.valueOf(season_id)))
-                    .build()).execute().body()).string();
-        } catch (IOException | NullPointerException e) {
-            return "错误:" + e.getMessage();
-        }
-        return HTMLBody;
-    }
-
-    private static String aid2VideoJson(String aid, int page) {
-        String HTMLBody;
-        try {//获得番剧数据
-            if (page > 0) {//av开头的id, 获取的是视频
-                HTMLBody = Objects.requireNonNull(okHttpClient.newCall(new Request.Builder()
-                        .url(Api.getPageInfoURL(Long.valueOf(aid), page))
-                        .build()).execute().body()).string();
-            } else {//page=0表示使用BiliPlus API查pageInfo
-                HTMLBody = Objects.requireNonNull(okHttpClient.newCall(new Request.Builder()
-                        .url(Api.getPageInfoURL2(Long.valueOf(aid)))
-                        .build()).execute().body()).string();
-            }
-        } catch (IOException | NullPointerException e) {
-            return "错误:" + e.getMessage();
-        }
-
-        return HTMLBody;
     }
 
     /**
@@ -130,7 +36,7 @@ https://bangumi.bilibili.com/view/web_api/season?season_id=441
      */
     static String sid2EpInfo(String season_id, SeriesInfo seriesInfo) {
         try {
-            JSONObject json = new JSONObject(sid2EpJson(season_id)).getJSONObject("result");
+            JSONObject json = new JSONObject(Api.getSeriesInfoURL(season_id)).getJSONObject("result");
             seriesInfo.title = json.getString("title");
             seriesInfo.cover = json.getString("cover");
             JSONArray infoList = json.getJSONArray("episodes");
@@ -160,9 +66,9 @@ https://bangumi.bilibili.com/view/web_api/season?season_id=441
 
     static String aid2PageInfo(String aid, SeriesInfo seriesInfo) {
         try {
-            JSONObject json = new JSONObject(aid2VideoJson(aid, 1));
+            JSONObject json = new JSONObject(Api.getPageInfoURL(aid, 1));
             if (!json.has("title")) {//如果B站查不到再去BiliPlus查
-                json = new JSONObject(aid2VideoJson(aid, 0));
+                json = new JSONObject(Api.getPageInfoURL(aid, 0));
                 seriesInfo.title = json.getString("title");
                 seriesInfo.cover = json.getString("pic");
                 seriesInfo.epInfo.clear();
@@ -180,7 +86,7 @@ https://bangumi.bilibili.com/view/web_api/season?season_id=441
                 int pages = json.getInt("pages");
                 do {
                     seriesInfo.epInfo.add(new EpInfo(0, i, json.getLong("tid"), json.getLong("cid"), String.valueOf(i), json.getString("part"), json.getString("face"), VideoType.Video));
-                    json = new JSONObject(aid2VideoJson(aid, ++i));
+                    json = new JSONObject(Api.getPageInfoURL(aid, ++i));
                 } while (i <= pages);
             }
             return "成功:PageInfo完成";
@@ -208,7 +114,7 @@ https://bangumi.bilibili.com/view/web_api/season?season_id=441
             switch (epInfo.videoType) {
                 case Anime:
                 case AreaAnime:
-                    entryJson.put("season_id", seriesInfo.season_id)
+                    entryJson.put("season_id", Long.toString(seriesInfo.season_id))
                             .put("source", new JSONObject()
                                     .put("av_id", epInfo.aid)
                                     .put("cid", epInfo.cid)
@@ -293,20 +199,11 @@ https://bangumi.bilibili.com/view/web_api/season?season_id=441
         } catch (JSONException e) {
             return "错误:" + e.getMessage();
         }
-
     }
 
     private static String cid2DownSegInfo(SeriesInfo seriesInfo) {
         //获取下载路径信息
-        String HTMLBody;
-        try {//获得番剧数据
-            EpInfo epInfo = seriesInfo.epInfo.get(seriesInfo.position);
-            HTMLBody = Objects.requireNonNull(okHttpClient.newCall(new Request.Builder()
-                    .url(Api.getMediaURL(epInfo.cid))
-                    .build()).execute().body()).string();
-        } catch (IOException | NullPointerException e) {
-            return "错误:" + e.getMessage();
-        }
+        String HTMLBody = Api.getMediaURL(seriesInfo.epInfo.get(seriesInfo.position).cid);
         seriesInfo.downloadSegmentInfo.clear();
         DownloadSegmentInfo downSegInfo;
         try {
@@ -322,52 +219,11 @@ https://bangumi.bilibili.com/view/web_api/season?season_id=441
                 downSegInfo.bytes = json.getLong("size");
                 seriesInfo.downloadSegmentInfo.add(downSegInfo);
             }
-            if(seriesInfo.downloadSegmentInfo.get(0).url.contains("acgvideo")) return "错误:链接需要跨域";
+            if (seriesInfo.downloadSegmentInfo.get(0).url.contains("acgvideo")) return "错误:链接需要跨域";
             else return "成功";
         } catch (JSONException e) {
             return "错误:" + e.getMessage();
         }
-        /*/XML语言
-            try {//not done
-                XmlPullParser parser = Xml.newPullParser();
-                parser.setInput(new StringReader(HTMLBody));
-                DownloadSegmentInfo downSegInfo = new DownloadSegmentInfo();
-                while (parser.getEventType() != XmlPullParser.END_DOCUMENT) {
-                    switch (parser.getEventType()) {
-                        case XmlPullParser.START_TAG:
-                            switch (parser.getName()) {
-                                case "length":
-                                    downSegInfo = new DownloadSegmentInfo();
-                                    parser.nextToken();
-                                    downSegInfo.duration = Long.parseLong(parser.getText());
-                                    parser.nextToken();
-                                    break;
-                                case "size":
-                                    parser.nextToken();
-                                    downSegInfo.bytes = Long.parseLong(parser.getText());
-                                    parser.nextToken();
-                                    break;
-                                case "result":
-                                    return "错误:需要Cookies";
-                                default:
-                                    break;
-                            }
-                            break;
-                        case XmlPullParser.CDSECT:
-                            downSegInfo.url = parser.getText();
-                            seriesInfo.downloadSegmentInfo.add(downSegInfo);
-                            break;
-                        default:
-                            break;
-                    }
-                    parser.nextToken();
-                }
-
-                return "成功";
-            } catch (XmlPullParserException | IOException e) {
-                return "错误:" + e.getMessage();
-            }
-        */
     }
 
     static String downloadVideo(SeriesInfo seriesInfo) {//要考虑AreaAnime和Anime
