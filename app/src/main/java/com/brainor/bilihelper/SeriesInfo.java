@@ -1,9 +1,9 @@
 package com.brainor.bilihelper;
 
-import android.support.annotation.NonNull;
-
 import java.util.ArrayList;
 import java.util.Objects;
+
+import androidx.annotation.NonNull;
 
 /**
  * 存储数据的结构体
