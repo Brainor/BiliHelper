@@ -41,7 +41,6 @@ class Api {
     static String _appSecret_VIP = "9b288147e5474dd2aa67085f716c560d";
     static String _appSecret_PlayUrl = "1c15888dc316e05a15fdd0a02ed6584f";
     static String BiliplusHost = "https://www.biliplus.com";
-
     static String getSeasonIdURL(String ep_id) {//从ep_id网页获取season_id
         //需要获得season_id
         try {//从ep编码变成season_id编码

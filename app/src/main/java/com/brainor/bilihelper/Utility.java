@@ -103,9 +103,9 @@ class Utility {
                     .put("total_bytes", seriesInfo.total_bytes)
                     .put("downloaded_bytes", (epInfo.videoType != VideoType.Anime) && (epInfo.videoType != VideoType.Video) ? seriesInfo.total_bytes : 0)
                     .put("title", seriesInfo.title)
-                    .put("type_tag", SettingInfo.type_tag)
+                    .put("type_tag", Settings.videoQuality.type_tag)
                     .put("cover", seriesInfo.cover)
-                    .put("prefered_video_quality", SettingInfo.prefered_video_quality)
+                    .put("prefered_video_quality", Settings.videoQuality.prefered_video_quality)
                     .put("guessed_total_bytes", 0)
                     .put("total_time_milli", seriesInfo.total_time_milli)
                     .put("danmaku_count", 3000)
@@ -172,8 +172,8 @@ class Utility {
                     indexJson.put("from", "vupload");
                     break;
             }
-            indexJson.put("type_tag", SettingInfo.type_tag)
-                    .put("description", SettingInfo.description)
+            indexJson.put("type_tag", Settings.videoQuality.type_tag)
+                    .put("description", Settings.videoQuality.description)
                     .put("is_stub", false)
                     .put("psedo_bitrate", 0);
             JSONArray segment_list = new JSONArray();
@@ -229,7 +229,7 @@ class Utility {
     static String downloadVideo(SeriesInfo seriesInfo) {//要考虑AreaAnime和Anime
         String returnValue;
         EpInfo epInfo = seriesInfo.epInfo.get(seriesInfo.position);
-        String biliPath = SettingInfo.appPath + SettingInfo.GetLocalPath(ClientType.release);
+        String biliPath = Settings.rootPath + Settings.clientType.appPath;
         String seriesPath, epPath;
         switch (epInfo.videoType) {
             case Anime:
@@ -249,7 +249,7 @@ class Utility {
                 break;
         }
         //剧集视频文件夹
-        String videoPath = epPath + SettingInfo.type_tag + "/";
+        String videoPath = epPath + Settings.videoQuality.type_tag + "/";
         CreateFolder(videoPath);
         //剧集entry.json文件
         String entryJsonPath = epPath + "entry.json";

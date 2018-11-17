@@ -27,6 +27,7 @@ import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -62,6 +63,8 @@ public class MainActivity extends AppCompatActivity {
         titleTextView = findViewById(R.id.titleTextView);
         LoadCookies();
         LoadHistory();
+        Settings.videoQuality = VideoQuality.list[Arrays.asList(VideoQuality.getEntries()).indexOf(Objects.requireNonNull(getSharedPreferences("Settings", Context.MODE_PRIVATE).getString("quality", "超清")))];
+        Settings.clientDownload = getSharedPreferences("Settings", Context.MODE_PRIVATE).getBoolean("clientDown", true);
         searchButton.setOnClickListener(v -> {
             String URL = inputTextView.getText().toString();
             new getList().execute(URL);
@@ -125,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
             case R.id.action_settings:
-//                this.startActivity(new Intent(this,SettingsActivity.class));
+                this.startActivity(new Intent(this,Settings.class));
                 return true;
             case R.id.history_settings:
                 this.startActivity(new Intent(this, HistorySettingsActivity.class));
@@ -233,7 +236,7 @@ public class MainActivity extends AppCompatActivity {
             public void onPageFinished(WebView view, String url) {
                 String cookies = CookieManager.getInstance().getCookie("biliplus.com");
                 if (cookies != null && cookies.contains("access_key")) {
-                    MainActivity.this.getPreferences(Context.MODE_PRIVATE).edit()
+                    getPreferences(Context.MODE_PRIVATE).edit()
                             .putString("biliplus.com", cookies)
                             .apply();
                     LoadCookies();
@@ -251,7 +254,7 @@ public class MainActivity extends AppCompatActivity {
 
     void LoadCookies() {
         List<Cookie> cookieList = new ArrayList<>();
-        String cookies = MainActivity.this.getPreferences(Context.MODE_PRIVATE).getString("biliplus.com", "");
+        String cookies = getPreferences(Context.MODE_PRIVATE).getString("biliplus.com", "");
         if (Objects.equals(cookies, "")) return;
         for (String cookie : Objects.requireNonNull(cookies).split(";\\s")) {
             String[] cookieSplit = cookie.split("=");
@@ -261,7 +264,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void LoadHistory() {
-        SharedPreferences sharedPref = MainActivity.this.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
         List<String> HistoryStrList = new ArrayList<>(Objects.requireNonNull(sharedPref.getStringSet("HistoryList", new HashSet<>())));
         Collections.sort(HistoryStrList);
         for (String history : HistoryStrList) {
@@ -272,7 +275,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void ClearHistory() {
-        SharedPreferences sharedPref = MainActivity.this.getPreferences(Context.MODE_PRIVATE);
+        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
         sharedPref.edit().remove("HistoryList").apply();
     }
 

@@ -56,9 +56,14 @@ class EpInfo {
 }
 
 enum ClientType {
-    release,//正式版
-    blue,//概念版
-    play//Play商店版
+    release("tv.danmaku.bili/download/"),//正式版
+    blue("com.bilibili.app.blue/download/"),//概念版
+    play("com.bilibili.app.in/download/");//Play商店版
+    String appPath;
+
+    ClientType(String appPath) {
+        this.appPath = appPath;
+    }
 }
 
 enum VideoType {
@@ -90,5 +95,25 @@ class HistoryInfo {
     public boolean equals(Object obj) {
         if (!(obj instanceof HistoryInfo)) return false;
         return Objects.equals(this.title, ((HistoryInfo) obj).title) && Objects.equals(this.url, ((HistoryInfo) obj).url);
+    }
+}
+
+enum VideoQuality {
+    _1("lua.mp4.bb2api.16", 16, "清晰"), _2("lua.flv720.bb2api.64", 64, "高清"), _3("lua.flv.bb2api.80", 80, "超清"), _4("lua.hdflv2.bb2api.bd", 112, "1080P");
+    String type_tag, description;
+    int prefered_video_quality;
+
+    VideoQuality(String type_tag, int prefered_video_quality, String description) {
+        this.type_tag = type_tag;
+        this.prefered_video_quality = prefered_video_quality;
+        this.description = description;
+    }
+
+    static VideoQuality[] list = VideoQuality.values();
+
+    public static String[] getEntries() {
+        String[] entries = new String[list.length];
+        for (int i = 0; i < list.length; i++) entries[i] = list[i].description;
+        return entries;
     }
 }
