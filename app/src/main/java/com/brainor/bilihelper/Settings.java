@@ -64,6 +64,7 @@ public class Settings extends AppCompatActivity {
             quality.setEntryValues(VideoQuality.getEntries());
             quality.setTitle("视频清晰度");
             quality.setSummary(PreferenceManager.getDefaultSharedPreferences(quality.getContext()).getString(quality.getKey(), "超清"));
+            quality.setValue((String) quality.getSummary());
             quality.setOnPreferenceChangeListener((preference, newValue) -> {
                 preference.setSummary(newValue.toString());
                 videoQuality = VideoQuality.list[Arrays.asList(VideoQuality.getEntries()).indexOf(newValue.toString())];

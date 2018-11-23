@@ -94,10 +94,11 @@ public class MainActivity extends AppCompatActivity {
                     if (successMsg.contains("成功"))
                         Toast.makeText(MainActivity.this, successMsg, Toast.LENGTH_LONG).show();
                     else {//创建下载任务, 返回值是创建文件的路径
+                        final String[] serverHost = new String[]{"video-us.biliplus.com:17020", "video-bg.biliplus.com:13120", "video-sg.biliplus.com:1520", "bg.biliplus-vid.top", "us.biliplus-vid.top", "sg.biliplus-vid.top"};
                         for (int i = 0; i < seriesInfo.downloadSegmentInfo.size(); i++) {
                             DownloadSegmentInfo downSegInfo = seriesInfo.downloadSegmentInfo.get(i);
-                            int position = seriesInfo.position;
                             EpInfo epInfo = seriesInfo.epInfo.get(seriesInfo.position);
+                            downSegInfo.url = downSegInfo.url.replace(serverHost[0], serverHost[1]).replace(serverHost[4],serverHost[3]);//美国的被墙了
                             DownloadTask(downSegInfo.url, successMsg + i + ".blv", seriesInfo.title + epInfo.index + epInfo.index_title + i);
                         }
                         Toast.makeText(MainActivity.this, "成功: 正在下载文件", Toast.LENGTH_LONG).show();
@@ -109,7 +110,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action",BaseTransientBottomBar.LENGTH_LONG)
+        fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", BaseTransientBottomBar.LENGTH_LONG)
                 .setAction("Action", null).show());
         CheckPermissions();
     }
@@ -128,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         switch (item.getItemId()) {
             case R.id.action_settings:
-                this.startActivity(new Intent(this,Settings.class));
+                this.startActivity(new Intent(this, Settings.class));
                 return true;
             case R.id.history_settings:
                 this.startActivity(new Intent(this, HistorySettingsActivity.class));
@@ -244,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
         });
-        AlertDialog ad=new AlertDialog.Builder(this)
+        AlertDialog ad = new AlertDialog.Builder(this)
                 .setTitle("获取BiliPlus cookies")
                 .setView(webView)
                 .setNegativeButton("Close", (dialog, id) -> dialog.dismiss())
@@ -292,8 +293,8 @@ public class MainActivity extends AppCompatActivity {
     void DownloadTask(String url, String filePath, String title) {
         DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-        request.addRequestHeader("Referer","https://www.bilibili.com/video/av14543079/")
-        .addRequestHeader("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:56.0) Gecko/20100101 Firefox/56.0");
+        request.addRequestHeader("Referer", "https://www.bilibili.com/video/av14543079/")
+                .addRequestHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:56.0) Gecko/20100101 Firefox/56.0");
         request.setTitle(title);
         request.setDestinationUri(Uri.fromFile(new File(filePath)));
         downloadManager.enqueue(request);
