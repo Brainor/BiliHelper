@@ -94,11 +94,9 @@ public class MainActivity extends AppCompatActivity {
                     if (successMsg.contains("成功"))
                         Toast.makeText(MainActivity.this, successMsg, Toast.LENGTH_LONG).show();
                     else {//创建下载任务, 返回值是创建文件的路径
-                        final String[] serverHost = new String[]{"video-us.biliplus.com:17020", "video-bg.biliplus.com:13120", "video-sg.biliplus.com:1520", "bg.biliplus-vid.top", "us.biliplus-vid.top", "sg.biliplus-vid.top"};
                         for (int i = 0; i < seriesInfo.downloadSegmentInfo.size(); i++) {
                             DownloadSegmentInfo downSegInfo = seriesInfo.downloadSegmentInfo.get(i);
                             EpInfo epInfo = seriesInfo.epInfo.get(seriesInfo.position);
-                            downSegInfo.url = downSegInfo.url.replace(serverHost[0], serverHost[1]).replace(serverHost[4],serverHost[3]);//美国的被墙了
                             DownloadTask(downSegInfo.url, successMsg + i + ".blv", seriesInfo.title + epInfo.index + epInfo.index_title + i);
                         }
                         Toast.makeText(MainActivity.this, "成功: 正在下载文件", Toast.LENGTH_LONG).show();
@@ -293,8 +291,11 @@ public class MainActivity extends AppCompatActivity {
     void DownloadTask(String url, String filePath, String title) {
         DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+        request.setAllowedOverMetered(false);
+        request.setAllowedOverRoaming(false);
         request.addRequestHeader("Referer", "https://www.bilibili.com/video/av14543079/")
                 .addRequestHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:56.0) Gecko/20100101 Firefox/56.0");
+        //MIUI必须关闭迅雷下载引擎
         request.setTitle(title);
         request.setDestinationUri(Uri.fromFile(new File(filePath)));
         downloadManager.enqueue(request);

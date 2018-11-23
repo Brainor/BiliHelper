@@ -206,6 +206,7 @@ class Utility {
         String HTMLBody = Api.getMediaURL(seriesInfo.epInfo.get(seriesInfo.position).cid);
         seriesInfo.downloadSegmentInfo.clear();
         DownloadSegmentInfo downSegInfo;
+        final String[] serverHost = new String[]{"video-us.biliplus.com:17020", "video-bg.biliplus.com:13120", "video-sg.biliplus.com:1520", "bg.biliplus-vid.top", "us.biliplus-vid.top", "sg.biliplus-vid.top"};
         try {
             JSONObject HTML = new JSONObject(HTMLBody);
             if (HTML.has("result") && HTML.getString("result").equals("error"))
@@ -215,6 +216,7 @@ class Utility {
                 JSONObject json = jsonArray.getJSONObject(i);
                 downSegInfo = new DownloadSegmentInfo();
                 downSegInfo.url = json.getString("url");
+                downSegInfo.url = downSegInfo.url.replace(serverHost[0], serverHost[2]).replace(serverHost[4],serverHost[5]);//美国的被墙了
                 downSegInfo.duration = json.getLong("length");
                 downSegInfo.bytes = json.getLong("size");
                 seriesInfo.downloadSegmentInfo.add(downSegInfo);
