@@ -62,10 +62,10 @@ class Api {
         }
     }
 
-    static String getMediaURL(long cid) {//获取视频下载地址
+    static String getMediaURL(long cid,int prefered_video_quality) {//获取视频下载地址
         try {
             return Objects.requireNonNull(okHttpClient.newCall(new Request.Builder()
-                    .url(BiliplusHost + "/BPplayurl.php?cid=" + cid + "&otype=json")
+                    .url(BiliplusHost + "/BPplayurl.php?cid=" + cid + "&otype=json&qn="+prefered_video_quality)
                     .build()).execute().body()).string();
         } catch (IOException | NullPointerException e) {
             return "错误:" + e.getMessage();

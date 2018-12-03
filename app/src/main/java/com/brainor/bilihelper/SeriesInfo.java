@@ -99,7 +99,7 @@ class HistoryInfo {
 }
 
 enum VideoQuality {
-    _1("lua.mp4.bb2api.16", 16, "清晰"), _2("lua.flv720.bb2api.64", 64, "高清"), _3("lua.flv.bb2api.80", 80, "超清"), _4("lua.hdflv2.bb2api.bd", 112, "1080P");
+    _1("lua.flv360.bili2api.15", 15, "流畅 360P"), _2("lua.flv480.bili2api.32", 32, "清晰 480P"), _3("lua.flv720.bili2api.64", 64, "高清 720P"), _4("lua.flv.bili2api.80", 80, "高清 1808P"), _5("lua.hdflv2.bb2api.bd", 112, "高清 1080P+");
     String type_tag, description;
     int prefered_video_quality;
 

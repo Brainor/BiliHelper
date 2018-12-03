@@ -203,7 +203,7 @@ class Utility {
 
     private static String cid2DownSegInfo(SeriesInfo seriesInfo) {
         //获取下载路径信息
-        String HTMLBody = Api.getMediaURL(seriesInfo.epInfo.get(seriesInfo.position).cid);
+        String HTMLBody = Api.getMediaURL(seriesInfo.epInfo.get(seriesInfo.position).cid, Settings.videoQuality.prefered_video_quality);
         seriesInfo.downloadSegmentInfo.clear();
         DownloadSegmentInfo downSegInfo;
         final String[] serverHost = new String[]{"video-us.biliplus.com:17020", "video-bg.biliplus.com:13120", "video-sg.biliplus.com:1520", "bg.biliplus-vid.top", "us.biliplus-vid.top", "sg.biliplus-vid.top"};
