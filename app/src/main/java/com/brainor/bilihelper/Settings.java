@@ -21,9 +21,10 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class Settings extends AppCompatActivity {
     static VideoQuality videoQuality;
-    static ClientType clientType=ClientType.release;
+    static ClientType clientType = ClientType.release;
     static boolean clientDownload;
     static String rootPath = "/storage/emulated/0/Android/data/";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,14 +64,14 @@ public class Settings extends AppCompatActivity {
             quality.setEntries(VideoQuality.getEntries());
             quality.setEntryValues(VideoQuality.getEntries());
             quality.setTitle("视频清晰度");
-            quality.setSummary(PreferenceManager.getDefaultSharedPreferences(quality.getContext()).getString(quality.getKey(), "超清"));
+            quality.setSummary(PreferenceManager.getDefaultSharedPreferences(quality.getContext()).getString(quality.getKey(), VideoQuality._2.description));
             quality.setValue((String) quality.getSummary());
             quality.setOnPreferenceChangeListener((preference, newValue) -> {
                 preference.setSummary(newValue.toString());
                 videoQuality = VideoQuality.list[Arrays.asList(VideoQuality.getEntries()).indexOf(newValue.toString())];
                 return true;
             });
-            SwitchPreference clientDownloadSwitch=new SwitchPreference(context);
+            SwitchPreference clientDownloadSwitch = new SwitchPreference(context);
             clientDownloadSwitch.setSummaryOn("B站");
             clientDownloadSwitch.setSummaryOff("系统");
             clientDownloadSwitch.setKey("clientDown");

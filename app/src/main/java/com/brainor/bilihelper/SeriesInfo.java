@@ -85,10 +85,12 @@ class DownloadSegmentInfo {
 class HistoryInfo {
     String title;
     String url;
+    int position;
 
-    HistoryInfo(String title, String url) {
+    HistoryInfo(String title, String url, int position) {
         this.title = title;
         this.url = url;
+        this.position = position;
     }
 
     @Override

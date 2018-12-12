@@ -9,4 +9,5 @@
 /build
 /captures
 /python/a.flv
+/app/release
 .externalNativeBuild

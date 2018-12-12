@@ -22,7 +22,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.BaseTransientBottomBar;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.File;
@@ -57,13 +56,13 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         Button searchButton = findViewById(R.id.searchButton);
         inputTextView = findViewById(R.id.inputText);
-        inputTextView.setText("ss25696");//调试用
+//        inputTextView.setText("ss25696");//调试用
         infoListView = findViewById(R.id.infoListView);
         infoListView.setAdapter(new ArrayAdapter<>(MainActivity.this, R.layout.support_simple_spinner_dropdown_item, seriesInfo.epInfo));
         titleTextView = findViewById(R.id.titleTextView);
         LoadCookies();
         LoadHistory();
-        Settings.videoQuality = VideoQuality.list[Arrays.asList(VideoQuality.getEntries()).indexOf(Objects.requireNonNull(getSharedPreferences("Settings", Context.MODE_PRIVATE).getString("quality", "超清")))];
+        Settings.videoQuality = VideoQuality.list[Arrays.asList(VideoQuality.getEntries()).indexOf(Objects.requireNonNull(getSharedPreferences("Settings", Context.MODE_PRIVATE).getString("quality", VideoQuality._2.description)))];
         Settings.clientDownload = getSharedPreferences("Settings", Context.MODE_PRIVATE).getBoolean("clientDown", true);
         searchButton.setOnClickListener(v -> {
             String URL = inputTextView.getText().toString();
@@ -101,6 +100,17 @@ public class MainActivity extends AppCompatActivity {
                         }
                         Toast.makeText(MainActivity.this, "成功: 正在下载文件", Toast.LENGTH_LONG).show();
                     }
+                    int position = HistoryList.get(0).position;//历史记录中的位置
+                    if (position != seriesInfo.position) {
+                        if (position != -1) {
+                            EpInfo epInfo = seriesInfo.epInfo.get(position);
+                            epInfo.index_title = epInfo.index_title.substring(0, epInfo.index_title.length() - 1);
+                        }
+                        seriesInfo.epInfo.get(seriesInfo.position).index_title += "☆";
+                        ((ArrayAdapter) infoListView.getAdapter()).notifyDataSetChanged();
+                        HistoryList.get(0).position = seriesInfo.position;
+                        StoreHistory(getApplicationContext());
+                    }
                 }
             }.execute();
 
@@ -108,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", BaseTransientBottomBar.LENGTH_LONG)
+        fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                 .setAction("Action", null).show());
         CheckPermissions();
     }
@@ -178,7 +188,6 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String HTMLBody) {
-            ((ArrayAdapter) infoListView.getAdapter()).notifyDataSetChanged();
             titleTextView.setText(seriesInfo.title);
             //添加historylist
             String url;
@@ -193,9 +202,15 @@ public class MainActivity extends AppCompatActivity {
                     url = "ss";
                     break;
             }
-            HistoryInfo info = new HistoryInfo(seriesInfo.title, url + seriesInfo.season_id);
-            HistoryList.remove(info);
+            HistoryInfo info = new HistoryInfo(seriesInfo.title, url + seriesInfo.season_id, -1);
+            int position = HistoryList.indexOf(info);
+            if (position > -1) {
+                info.position = HistoryList.get(position).position;
+                if (info.position > -1) seriesInfo.epInfo.get(info.position).index_title += "☆";
+                HistoryList.remove(position);
+            }
             HistoryList.add(0, info);
+            ((ArrayAdapter) infoListView.getAdapter()).notifyDataSetChanged();
             StoreHistory(getApplicationContext());
         }
 
@@ -247,7 +262,6 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle("获取BiliPlus cookies")
                 .setView(webView)
                 .setNegativeButton("Close", (dialog, id) -> dialog.dismiss())
-
                 .show();
     }
 
@@ -263,14 +277,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void LoadHistory() {
-        SharedPreferences sharedPref = getPreferences(Context.MODE_PRIVATE);
-        List<String> HistoryStrList = new ArrayList<>(Objects.requireNonNull(sharedPref.getStringSet("HistoryList", new HashSet<>())));
+        List<String> HistoryStrList = new ArrayList<>(Objects.requireNonNull(getSharedPreferences("MainActivity", Context.MODE_PRIVATE).getStringSet("HistoryList", new HashSet<>())));
         Collections.sort(HistoryStrList);
         for (String history : HistoryStrList) {
             String[] historys = history.split(";");
-            HistoryList.add(new HistoryInfo(historys[1], historys[2]));
+            HistoryList.add(new HistoryInfo(historys[1], historys[2], Integer.parseInt(historys[3])));
         }
-
     }
 
     void ClearHistory() {
@@ -282,7 +294,7 @@ public class MainActivity extends AppCompatActivity {
         HashSet<String> HistoryStrSet = new HashSet<>();
         for (int i = 0; i < HistoryList.size(); i++) {
             HistoryInfo info = HistoryList.get(i);
-            HistoryStrSet.add(i + ";" + info.title + ";" + info.url);
+            HistoryStrSet.add(i + ";" + info.title + ";" + info.url + ";" + info.position);
         }
         SharedPreferences sharedPref = context.getSharedPreferences("MainActivity", Context.MODE_PRIVATE);
         sharedPref.edit().putStringSet("HistoryList", HistoryStrSet).apply();

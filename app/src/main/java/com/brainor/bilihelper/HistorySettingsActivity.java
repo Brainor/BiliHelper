@@ -85,6 +85,7 @@ public class HistorySettingsActivity extends AppCompatActivity {
         private MyAdapter mAdapter;
         private Drawable icon;
         private final ColorDrawable background;
+
         SwipeToDeleteCallback(MyAdapter adapter) {
             super(0, ItemTouchHelper.LEFT);
             mAdapter = adapter;
