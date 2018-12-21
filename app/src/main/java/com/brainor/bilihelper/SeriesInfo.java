@@ -2,6 +2,7 @@ package com.brainor.bilihelper;
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import androidx.annotation.NonNull;
 
@@ -56,13 +57,18 @@ class EpInfo {
 }
 
 enum ClientType {
-    release("tv.danmaku.bili/download/"),//正式版
-    blue("com.bilibili.app.blue/download/"),//概念版
-    play("com.bilibili.app.in/download/");//Play商店版
+    release("tv.danmaku.bili"),//正式版
+    blue("com.bilibili.app.blue"),//概念版
+    play("com.bilibili.app.in");//Play商店版
     String appPath;
+    String packageName;
 
-    ClientType(String appPath) {
-        this.appPath = appPath;
+    ClientType(String packageName) {
+        this.appPath = packageName + "/download/";
+        this.packageName = packageName;
+    }
+    public static String[] getEntries() {
+        return Stream.of(ClientType.values()).map(cT -> cT.packageName).toArray(String[]::new);
     }
 }
 
@@ -111,11 +117,7 @@ enum VideoQuality {
         this.description = description;
     }
 
-    static VideoQuality[] list = VideoQuality.values();
-
     public static String[] getEntries() {
-        String[] entries = new String[list.length];
-        for (int i = 0; i < list.length; i++) entries[i] = list[i].description;
-        return entries;
+        return Stream.of(VideoQuality.values()).map(vQ -> vQ.description).toArray(String[]::new);
     }
 }

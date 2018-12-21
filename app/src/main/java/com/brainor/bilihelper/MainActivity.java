@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -62,9 +63,11 @@ public class MainActivity extends AppCompatActivity {
         titleTextView = findViewById(R.id.titleTextView);
         LoadCookies();
         LoadHistory();
-        Settings.videoQuality = VideoQuality.list[Arrays.asList(VideoQuality.getEntries()).indexOf(Objects.requireNonNull(getSharedPreferences("Settings", Context.MODE_PRIVATE).getString("quality", VideoQuality._2.description)))];
+        Settings.videoQuality = VideoQuality.values()[Arrays.asList(VideoQuality.getEntries()).indexOf(Objects.requireNonNull(getSharedPreferences("Settings", Context.MODE_PRIVATE).getString("quality", VideoQuality._2.description)))];
+        Settings.clientType=Stream.of(ClientType.values()).filter(item -> Objects.equals(item.packageName, getSharedPreferences("Settings", Context.MODE_PRIVATE).getString("clientType", ClientType.release.packageName))).findFirst().get();
         Settings.clientDownload = getSharedPreferences("Settings", Context.MODE_PRIVATE).getBoolean("clientDown", true);
         searchButton.setOnClickListener(v -> {
+//            sendBroadcast(new Intent("com.github.shadowsocks.CLOSE"));
             String URL = inputTextView.getText().toString();
             new getList().execute(URL);
         });
@@ -85,20 +88,25 @@ public class MainActivity extends AppCompatActivity {
                     if (errMsg.contains("需要Cookies")) {
                         PopupWebview();
                     } else if (errMsg.contains("timeout"))
-                        Api.BiliplusHost = "https://" + (Api.BiliplusHost == "https://www.biliplus.com" ? "backup" : "www") + ".biliplus.com";
+                        Api.BiliplusHost = "https://" + (Api.BiliplusHost.equals("https://www.biliplus.com") ? "backup" : "www") + ".biliplus.com";
                 }
 
                 @Override
                 protected void onPostExecute(String successMsg) {
-                    if (successMsg.contains("成功"))
+                    if (successMsg.contains("成功")) {
                         Toast.makeText(MainActivity.this, successMsg, Toast.LENGTH_LONG).show();
+                        //重启哔哩哔哩
+                        Intent intent=getPackageManager().getLaunchIntentForPackage(Settings.clientType.packageName);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        startActivity(intent);
+                    }
                     else {//创建下载任务, 返回值是创建文件的路径
                         for (int i = 0; i < seriesInfo.downloadSegmentInfo.size(); i++) {
                             DownloadSegmentInfo downSegInfo = seriesInfo.downloadSegmentInfo.get(i);
                             EpInfo epInfo = seriesInfo.epInfo.get(seriesInfo.position);
                             DownloadTask(downSegInfo.url, successMsg + i + ".blv", seriesInfo.title + epInfo.index + epInfo.index_title + i);
                         }
-                        Toast.makeText(MainActivity.this, "成功: 正在下载文件", Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.this, "成功: 正在下载文件\n需要关闭VPN", Toast.LENGTH_LONG).show();
                     }
                     int position = HistoryList.get(0).position;//历史记录中的位置
                     if (position != seriesInfo.position) {
@@ -301,6 +309,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void DownloadTask(String url, String filePath, String title) {
+        //关闭VPN
         DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
         request.setAllowedOverMetered(false);

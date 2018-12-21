@@ -44,8 +44,10 @@ public class AboutSettingsActivity extends AppCompatActivity {
                 "<h1><a id=\"_15\"></a>已知问题</h1>\n" +
                 "<ol>\n" +
                 "<li>可能BiliPlus也没有相关资源的下载链接</li>\n" +
-                "<li>B站和BiliPlus提供的链接都是acgvideo.com域名下的, 需要特定的headers或者有IP限制, 会导致下载失败. 前者可以解决, 后者无法解决</li>\n" +
-                "</ol>\n", Html.FROM_HTML_MODE_LEGACY);
+                "<li>B站和BiliPlus提供的链接都是acgvideo.com域名下的, 需要特定的headers或者有IP限制, 会导致下载失败. 前者可以解决, 后者无法解决.</li>\n" +
+                "<li>B站账户必须超过5级才可以看会员视频(Biliplus限制).</li>" +
+                "<li><font color=\"red\"><b>目前Biliplus已挂.</b></font></li>" +
+                "</ol>\n", Html.FROM_HTML_SEPARATOR_LINE_BREAK_LIST_ITEM);
         aboutTextView.setText(styledText);
         aboutTextView.setMovementMethod(LinkMovementMethod.getInstance());
     }
