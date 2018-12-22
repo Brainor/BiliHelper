@@ -3,6 +3,7 @@ package com.brainor.bilihelper;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.RelativeLayout;
@@ -29,7 +30,8 @@ public class Settings extends AppCompatActivity {
     static VideoQuality videoQuality;
     static ClientType clientType = ClientType.release;
     static boolean clientDownload;
-    static String rootPath = "/storage/emulated/0/Android/data/";
+    static String rootPath = Environment.getExternalStorageDirectory() + "/Android/data/";
+    static String downloadAPKPath = Environment.getExternalStorageDirectory() + "/Download/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

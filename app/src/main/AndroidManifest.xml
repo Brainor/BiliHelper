@@ -47,6 +47,15 @@
             android:name=".Settings"
             android:label="@string/action_settings"
             android:parentActivityName=".MainActivity" />
+        <provider
+            android:authorities="${applicationId}.fileprovider"
+            android:name="androidx.core.content.FileProvider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"/>
+            </provider>
     </application>
 
 </manifest>

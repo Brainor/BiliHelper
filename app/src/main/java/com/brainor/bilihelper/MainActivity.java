@@ -6,12 +6,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -35,6 +38,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -59,7 +63,16 @@ public class MainActivity extends AppCompatActivity {
         inputTextView = findViewById(R.id.inputText);
 //        inputTextView.setText("ss25696");//调试用
         infoListView = findViewById(R.id.infoListView);
-        infoListView.setAdapter(new ArrayAdapter<>(MainActivity.this, R.layout.support_simple_spinner_dropdown_item, seriesInfo.epInfo));
+        infoListView.setAdapter(new ArrayAdapter<EpInfo>(MainActivity.this, R.layout.support_simple_spinner_dropdown_item, seriesInfo.epInfo){
+            @Override
+            public @NonNull View getView(int position, View convertView,@NonNull ViewGroup  parent){
+                View view=super.getView(position,convertView,parent);
+                if (position==HistoryList.get(0).position){//永远是最前面的那个
+                    ((TextView)view).setTextColor(Color.BLUE);
+                }else ((TextView)view).setTextColor(Color.BLACK);
+                return view;
+            }
+        });
         titleTextView = findViewById(R.id.titleTextView);
         LoadCookies();
         LoadHistory();
@@ -98,25 +111,20 @@ public class MainActivity extends AppCompatActivity {
                         //重启哔哩哔哩
                         Intent intent=getPackageManager().getLaunchIntentForPackage(Settings.clientType.packageName);
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                        startActivity(intent);
+//                        startActivity(intent);
                     }
                     else {//创建下载任务, 返回值是创建文件的路径
                         for (int i = 0; i < seriesInfo.downloadSegmentInfo.size(); i++) {
                             DownloadSegmentInfo downSegInfo = seriesInfo.downloadSegmentInfo.get(i);
                             EpInfo epInfo = seriesInfo.epInfo.get(seriesInfo.position);
-                            DownloadTask(downSegInfo.url, successMsg + i + ".blv", seriesInfo.title + epInfo.index + epInfo.index_title + i);
+                            DownloadTask(downSegInfo.url, successMsg + i + ".blv", seriesInfo.title + epInfo.index + epInfo.index_title + i,MainActivity.this);
                         }
                         Toast.makeText(MainActivity.this, "成功: 正在下载文件\n需要关闭VPN", Toast.LENGTH_LONG).show();
                     }
                     int position = HistoryList.get(0).position;//历史记录中的位置
                     if (position != seriesInfo.position) {
-                        if (position != -1) {
-                            EpInfo epInfo = seriesInfo.epInfo.get(position);
-                            epInfo.index_title = epInfo.index_title.substring(0, epInfo.index_title.length() - 1);
-                        }
-                        seriesInfo.epInfo.get(seriesInfo.position).index_title += "☆";
-                        ((ArrayAdapter) infoListView.getAdapter()).notifyDataSetChanged();
                         HistoryList.get(0).position = seriesInfo.position;
+                        ((ArrayAdapter) infoListView.getAdapter()).notifyDataSetChanged();
                         StoreHistory(getApplicationContext());
                     }
                 }
@@ -213,8 +221,7 @@ public class MainActivity extends AppCompatActivity {
             HistoryInfo info = new HistoryInfo(seriesInfo.title, url + seriesInfo.season_id, -1);
             int position = HistoryList.indexOf(info);
             if (position > -1) {
-                info.position = HistoryList.get(position).position;
-                if (info.position > -1) seriesInfo.epInfo.get(info.position).index_title += "☆";
+                info.position=HistoryList.get(position).position;
                 HistoryList.remove(position);
             }
             HistoryList.add(0, info);
@@ -308,9 +315,9 @@ public class MainActivity extends AppCompatActivity {
         sharedPref.edit().putStringSet("HistoryList", HistoryStrSet).apply();
     }
 
-    void DownloadTask(String url, String filePath, String title) {
+    static void DownloadTask(String url, String filePath, String title,Context context) {
         //关闭VPN
-        DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+        DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
         request.setAllowedOverMetered(false);
         request.setAllowedOverRoaming(false);
