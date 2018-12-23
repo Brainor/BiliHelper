@@ -1,12 +1,19 @@
 package com.brainor.bilihelper;
 
+import android.app.DownloadManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
+import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,6 +34,16 @@ import okhttp3.Request;
 public class AboutSettingsActivity extends AppCompatActivity {
     static private String downUrl;
     static private String latestVersion;
+    Button updateButton;
+    Long extra_download_id = 0L;
+    BroadcastReceiver downloadComplete = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getLongExtra("extra_download_id", 0) == extra_download_id) {
+                updateButton.callOnClick();
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,18 +53,29 @@ public class AboutSettingsActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
 
-        findViewById(R.id.updateButton).setOnClickListener(v -> {
+        String verText = "版本号 " + BuildConfig.VERSION_NAME;
+        ((TextView) findViewById(R.id.version)).setText(verText);
+        updateButton = findViewById(R.id.updateButton);
+        updateButton.setOnClickListener(v -> {
             File appFile = new File(Settings.downloadAPKPath, "Bilihelper-" + latestVersion + ".apk");
             if (appFile.exists())//若存在则安装
-                startActivityForResult(new Intent(Intent.ACTION_INSTALL_PACKAGE)
+                startActivity(new Intent(Intent.ACTION_INSTALL_PACKAGE)
                         .setData(FileProvider.getUriForFile(AboutSettingsActivity.this, getApplicationContext().getPackageName() + ".fileprovider", appFile))
-                        .putExtra(Intent.EXTRA_RETURN_RESULT, true)
-                        .putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, true)
-                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION), 144);
+                        .setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
             else {//若不存在则下载
-                MainActivity.DownloadTask(downUrl, Settings.downloadAPKPath + "BiliHelper-" + latestVersion + ".apk", "BiliHelper-" + latestVersion + ".apk", AboutSettingsActivity.this);
+                extra_download_id = MainActivity.DownloadTask(downUrl, Settings.downloadAPKPath + "BiliHelper-" + latestVersion + ".apk", "BiliHelper-" + latestVersion + ".apk", AboutSettingsActivity.this);
                 Toast.makeText(AboutSettingsActivity.this, "下载Bilihelper.apk", Toast.LENGTH_SHORT).show();
             }
+        });
+
+        updateButton.setOnLongClickListener(v -> {
+            File appFile = new File(Settings.downloadAPKPath, "Bilihelper-" + latestVersion + ".apk");
+            if (appFile.exists())//若存在则删除
+                if (appFile.delete())
+                    Toast.makeText(AboutSettingsActivity.this, "文件已删除", Toast.LENGTH_SHORT).show();
+                else Toast.makeText(AboutSettingsActivity.this, "文件未删除", Toast.LENGTH_SHORT).show();
+
+            return true;
         });
         new getLatestVersion().execute();
 
@@ -78,6 +106,8 @@ public class AboutSettingsActivity extends AppCompatActivity {
         TextView aboutTextView = findViewById(R.id.aboutText);
         aboutTextView.setText(styledText);
         aboutTextView.setMovementMethod(LinkMovementMethod.getInstance());
+
+
     }
 
     class getLatestVersion extends AsyncTask<Void, Void, String> {
@@ -101,6 +131,7 @@ public class AboutSettingsActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String html) {
+            updateButton.setVisibility(View.VISIBLE);
             latestVersion = BuildConfig.VERSION_NAME;
             try {
                 JSONObject json = new JSONObject(html);
@@ -109,16 +140,23 @@ public class AboutSettingsActivity extends AppCompatActivity {
             } catch (JSONException e) {
                 Toast.makeText(AboutSettingsActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
             }
-            String verText;
             if (!Objects.equals(BuildConfig.VERSION_NAME, latestVersion)) {
-                verText = "版本号 " + BuildConfig.VERSION_NAME + "\n最新版本 " + latestVersion;
-                ((TextView) findViewById(R.id.version)).setText(verText);
-                findViewById(R.id.updateButton).setVisibility(View.VISIBLE);
-            } else {
-                verText = "版本号 " + latestVersion;
-                ((TextView) findViewById(R.id.version)).setText(verText);
-                findViewById(R.id.updateButton).setVisibility(View.GONE);
-            }
+                String updateText = "更新至" + latestVersion;
+                updateButton.setText(updateText);
+            } else updateButton.setText("更新");
+
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(downloadComplete, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(downloadComplete);
     }
 }

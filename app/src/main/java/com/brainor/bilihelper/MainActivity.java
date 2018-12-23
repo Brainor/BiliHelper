@@ -315,7 +315,7 @@ public class MainActivity extends AppCompatActivity {
         sharedPref.edit().putStringSet("HistoryList", HistoryStrSet).apply();
     }
 
-    static void DownloadTask(String url, String filePath, String title,Context context) {
+    static Long DownloadTask(String url, String filePath, String title,Context context) {
         //关闭VPN
         DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
@@ -326,7 +326,7 @@ public class MainActivity extends AppCompatActivity {
         //MIUI必须关闭迅雷下载引擎
         request.setTitle(title);
         request.setDestinationUri(Uri.fromFile(new File(filePath)));
-        downloadManager.enqueue(request);
+        return downloadManager.enqueue(request);
     }
 
     @Override
@@ -348,4 +348,5 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = getIntent();
         onNewIntent(intent);
     }
+
 }
