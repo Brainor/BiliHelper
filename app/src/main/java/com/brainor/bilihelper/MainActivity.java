@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         });
         titleTextView = findViewById(R.id.titleTextView);
         LoadCookies();
-        LoadHistory();
+        if (HistoryList.size() == 0) LoadHistory();
         Settings.videoQuality = VideoQuality.values()[Arrays.asList(VideoQuality.getEntries()).indexOf(Objects.requireNonNull(getSharedPreferences("Settings", Context.MODE_PRIVATE).getString("quality", VideoQuality._2.description)))];
         Settings.clientType=Stream.of(ClientType.values()).filter(item -> Objects.equals(item.packageName, getSharedPreferences("Settings", Context.MODE_PRIVATE).getString("clientType", ClientType.release.packageName))).findFirst().get();
         Settings.clientDownload = getSharedPreferences("Settings", Context.MODE_PRIVATE).getBoolean("clientDown", true);
