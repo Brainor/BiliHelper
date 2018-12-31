@@ -63,13 +63,14 @@ public class MainActivity extends AppCompatActivity {
         inputTextView = findViewById(R.id.inputText);
 //        inputTextView.setText("ss25696");//调试用
         infoListView = findViewById(R.id.infoListView);
-        infoListView.setAdapter(new ArrayAdapter<EpInfo>(MainActivity.this, R.layout.support_simple_spinner_dropdown_item, seriesInfo.epInfo){
+        infoListView.setAdapter(new ArrayAdapter<EpInfo>(MainActivity.this, R.layout.support_simple_spinner_dropdown_item, seriesInfo.epInfo) {
             @Override
-            public @NonNull View getView(int position, View convertView,@NonNull ViewGroup  parent){
-                View view=super.getView(position,convertView,parent);
-                if (position==HistoryList.get(0).position){//永远是最前面的那个
-                    ((TextView)view).setTextColor(Color.BLUE);
-                }else ((TextView)view).setTextColor(Color.BLACK);
+            public @NonNull
+            View getView(int position, View convertView, @NonNull ViewGroup parent) {
+                View view = super.getView(position, convertView, parent);
+                if (position == HistoryList.get(0).position) {//永远是最前面的那个
+                    ((TextView) view).setTextColor(Color.BLUE);
+                } else ((TextView) view).setTextColor(Color.BLACK);
                 return view;
             }
         });
@@ -77,10 +78,9 @@ public class MainActivity extends AppCompatActivity {
         LoadCookies();
         if (HistoryList.size() == 0) LoadHistory();
         Settings.videoQuality = VideoQuality.values()[Arrays.asList(VideoQuality.getEntries()).indexOf(Objects.requireNonNull(getSharedPreferences("Settings", Context.MODE_PRIVATE).getString("quality", VideoQuality._2.description)))];
-        Settings.clientType=Stream.of(ClientType.values()).filter(item -> Objects.equals(item.packageName, getSharedPreferences("Settings", Context.MODE_PRIVATE).getString("clientType", ClientType.release.packageName))).findFirst().get();
+        Settings.clientType = Stream.of(ClientType.values()).filter(item -> Objects.equals(item.packageName, getSharedPreferences("Settings", Context.MODE_PRIVATE).getString("clientType", ClientType.release.packageName))).findFirst().get();
         Settings.clientDownload = getSharedPreferences("Settings", Context.MODE_PRIVATE).getBoolean("clientDown", true);
         searchButton.setOnClickListener(v -> {
-//            sendBroadcast(new Intent("com.github.shadowsocks.CLOSE"));
             String URL = inputTextView.getText().toString();
             new getList().execute(URL);
         });
@@ -109,17 +109,17 @@ public class MainActivity extends AppCompatActivity {
                     if (successMsg.contains("成功")) {
                         Toast.makeText(MainActivity.this, successMsg, Toast.LENGTH_LONG).show();
                         //重启哔哩哔哩
-                        Intent intent=getPackageManager().getLaunchIntentForPackage(Settings.clientType.packageName);
+                        Intent intent = getPackageManager().getLaunchIntentForPackage(Settings.clientType.packageName);
                         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-//                        startActivity(intent);
-                    }
-                    else {//创建下载任务, 返回值是创建文件的路径
+                        startActivity(intent);
+                    } else {//创建下载任务, 返回值是创建文件的路径
+                        Toast.makeText(MainActivity.this, "成功: 正在下载文件\n关闭VPN", Toast.LENGTH_LONG).show();
+                        sendBroadcast(new Intent("in.zhaoj.shadowsocksr.CLOSE"));//关闭SSR
                         for (int i = 0; i < seriesInfo.downloadSegmentInfo.size(); i++) {
                             DownloadSegmentInfo downSegInfo = seriesInfo.downloadSegmentInfo.get(i);
                             EpInfo epInfo = seriesInfo.epInfo.get(seriesInfo.position);
-                            DownloadTask(downSegInfo.url, successMsg + i + ".blv", seriesInfo.title + epInfo.index + epInfo.index_title + i,MainActivity.this);
+                            DownloadTask(downSegInfo.url, successMsg + i + ".blv", seriesInfo.title + epInfo.index + epInfo.index_title + i, MainActivity.this);
                         }
-                        Toast.makeText(MainActivity.this, "成功: 正在下载文件\n需要关闭VPN", Toast.LENGTH_LONG).show();
                     }
                     int position = HistoryList.get(0).position;//历史记录中的位置
                     if (position != seriesInfo.position) {
@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
             HistoryInfo info = new HistoryInfo(seriesInfo.title, url + seriesInfo.season_id, -1);
             int position = HistoryList.indexOf(info);
             if (position > -1) {
-                info.position=HistoryList.get(position).position;
+                info.position = HistoryList.get(position).position;
                 HistoryList.remove(position);
             }
             HistoryList.add(0, info);
@@ -315,7 +315,7 @@ public class MainActivity extends AppCompatActivity {
         sharedPref.edit().putStringSet("HistoryList", HistoryStrSet).apply();
     }
 
-    static Long DownloadTask(String url, String filePath, String title,Context context) {
+    static Long DownloadTask(String url, String filePath, String title, Context context) {
         //关闭VPN
         DownloadManager downloadManager = (DownloadManager) context.getSystemService(Context.DOWNLOAD_SERVICE);
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
@@ -348,5 +348,4 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = getIntent();
         onNewIntent(intent);
     }
-
 }

@@ -41,35 +41,25 @@ class Api {
     static String _appSecret_VIP = "9b288147e5474dd2aa67085f716c560d";
     static String _appSecret_PlayUrl = "1c15888dc316e05a15fdd0a02ed6584f";
     static String BiliplusHost = "https://www.biliplus.com";
+
     static String getSeasonIdURL(String ep_id) {//从ep_id网页获取season_id
         //需要获得season_id
-        try {//从ep编码变成season_id编码
-            return Objects.requireNonNull(okHttpClient.newCall(new Request.Builder()
-                    .url("https://www.bilibili.com/bangumi/play/ep" + ep_id)
-                    .build()).execute().body()).string();
-        } catch (IOException | NullPointerException e) {
-            return "错误:" + e.getMessage();
-        }
+//        try {//从ep编码变成season_id编码
+//            return Objects.requireNonNull(okHttpClient.newCall(new Request.Builder()
+//                    .url("https://www.bilibili.com/bangumi/play/ep" + ep_id)
+//                    .build()).execute().body()).string();
+//        } catch (IOException | NullPointerException e) {
+//            return "错误:" + e.getMessage();
+//        }
+        return retrieveFromWeb("https://www.bilibili.com/bangumi/play/ep" + ep_id);
     }
 
     static String getSeriesInfoURL(String season_id) {//利用season_id获得SeriesInfo
-        try {//获得番剧数据
-            return Objects.requireNonNull(okHttpClient.newCall(new Request.Builder()
-                    .url("https://bangumi.bilibili.com/view/web_api/season?season_id=" + season_id)
-                    .build()).execute().body()).string();
-        } catch (IOException | NullPointerException e) {
-            return "错误:" + e.getMessage();
-        }
+        return retrieveFromWeb("https://bangumi.bilibili.com/view/web_api/season?season_id=" + season_id);
     }
 
     static String getMediaURL(long cid,int prefered_video_quality) {//获取视频下载地址
-        try {
-            return Objects.requireNonNull(okHttpClient.newCall(new Request.Builder()
-                    .url(BiliplusHost + "/BPplayurl.php?cid=" + cid + "&otype=json&qn="+prefered_video_quality)
-                    .build()).execute().body()).string();
-        } catch (IOException | NullPointerException e) {
-            return "错误:" + e.getMessage();
-        }
+        return retrieveFromWeb(BiliplusHost + "/BPplayurl.php?cid=" + cid + "&otype=json&qn="+prefered_video_quality);
     }
 
     static String getMediaURL2(Long aid, int page, VideoType videoType) {//BiliPlus接口
@@ -99,18 +89,12 @@ class Api {
 
     static String getPageInfoURL(String aid, int page) {////利用aid获得PageInfo
         String url;
-        try {//获得番剧数据
-            if (page > 0) {//av开头的id, 获取的是视频
-                url = "https://api.bilibili.com/view?appkey=" + appKey + "&id=" + aid + "&page=" + page;
-            } else {//page=0表示使用BiliPlus API查pageInfo
-                url = BiliplusHost + "/api/view?id=" + aid;
-            }
-            return Objects.requireNonNull(okHttpClient.newCall(new Request.Builder()
-                    .url(url)
-                    .build()).execute().body()).string();
-        } catch (IOException | NullPointerException e) {
-            return "错误:" + e.getMessage();
+        if (page > 0) {//av开头的id, 获取的是视频
+            url = "https://api.bilibili.com/view?appkey=" + appKey + "&id=" + aid + "&page=" + page;
+        } else {//page=0表示使用BiliPlus API查pageInfo
+            url = BiliplusHost + "/api/view?id=" + aid;
         }
+        return retrieveFromWeb(url);
     }
 
     static String getPageInfoURL2(Long aid) {//利用aid在BiliPlus获得PageInfo
@@ -126,8 +110,7 @@ class Api {
     }
 
     static String loginBiliPlus() {
-        String loginUrl = BiliplusHost + "/login";
-        return loginUrl;
+        return BiliplusHost + "/login";
 //        return "https://passport.bilibili.com/login?appkey=27eb53fc9058f8c3&api=" + loginUrl + "&sign=" + MD5("api=" + loginUrl + "c2ed53a74eeefe3cf99fbd01d8c9c375");
     }
 
@@ -139,6 +122,15 @@ class Api {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             return "";
+        }
+    }
+    private static String retrieveFromWeb(String url){//联网获得信息
+        try {//从ep编码变成season_id编码
+            return Objects.requireNonNull(okHttpClient.newCall(new Request.Builder()
+                    .url(url)
+                    .build()).execute().body()).string();
+        } catch (IOException | NullPointerException e) {
+            return "错误:" + e.getMessage();
         }
     }
 }
