@@ -86,7 +86,10 @@ class Api {
         url += "&sign=" + getSign(url, appSecret);
         return url;
     }
+    static String getMediaURL4(SeriesInfo seriesInfo){//Android客户端官方API
 
+        return "";
+    }
     static String getPageInfoURL(String aid, int page) {////利用aid获得PageInfo
         String url;
         if (page > 0) {//av开头的id, 获取的是视频
