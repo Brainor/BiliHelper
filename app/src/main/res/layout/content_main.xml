@@ -10,7 +10,7 @@
     tools:showIn="@layout/activity_main">
 
     <EditText
-        android:id="@+id/inputText"
+        android:id="@+id/inputTextView"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
@@ -30,7 +30,7 @@
         android:layout_margin="0dp"
         android:minHeight="0dp"
         android:text="@string/searchButtonText"
-        app:layout_constraintBottom_toBottomOf="@+id/inputText"
+        app:layout_constraintBottom_toBottomOf="@+id/inputTextView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -47,7 +47,7 @@
         android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/inputText" />
+        app:layout_constraintTop_toBottomOf="@+id/inputTextView" />
 
     <ListView
         android:id="@+id/infoListView"

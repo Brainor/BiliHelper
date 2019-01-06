@@ -31,7 +31,7 @@
         tools:showIn="@layout/history_settings">
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/HistoryList"
+            android:id="@+id/historyListView"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_marginStart="8dp"
