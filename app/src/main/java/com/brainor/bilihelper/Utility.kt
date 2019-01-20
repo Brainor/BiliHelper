@@ -208,7 +208,7 @@ internal object Utility {
                 val json = jsonArray.getJSONObject(i)
                 downSegInfo = DownloadSegmentInfo()
                 downSegInfo.url = json.getString("url")
-                downSegInfo.url = downSegInfo.url.replace(serverHost[2], serverHost[1]).replace(serverHost[5], serverHost[4])//新加坡的更快点
+//                downSegInfo.url = downSegInfo.url.replace(serverHost[2], serverHost[1]).replace(serverHost[5], serverHost[4])//新加坡的更快点
                 downSegInfo.duration = json.getLong("length")
                 downSegInfo.bytes = json.getLong("size")
                 seriesInfo.downloadSegmentInfo.add(downSegInfo)

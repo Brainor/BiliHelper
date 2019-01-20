@@ -88,6 +88,7 @@ enum class VideoQuality constructor(var type_tag: String, var prefered_video_qua
     T4("lua.flv.bili2api.80", 80, "高清 1808P"),
     T5("lua.hdflv2.bb2api.bd", 112, "高清 1080P+");
 
+
     companion object {
         val entries: Array<String>
             //get() = Stream.of(*VideoQuality.values()).map { vQ -> vQ.description }.toArray(String[]::new  /* Currently unsupported in Kotlin */)

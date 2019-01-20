@@ -61,46 +61,7 @@ class MainActivity : AppCompatActivity() {
         infoListView.setOnItemClickListener { _, _, position, _ ->
             seriesInfo.position = position
             //客户端创建文本文件, 或者从第三方下载
-            object : AsyncTask<Void, Void, String>() {
-                override fun doInBackground(vararg voids: Void): String {
-                    val returnValue = Utility.downloadVideo(seriesInfo)
-                    if (returnValue.substring(0, 2) == "错误") cancel(true)
-                    return returnValue
-                }
-
-                override fun onCancelled(errMsg: String) {
-                    Toast.makeText(this@MainActivity, errMsg, Toast.LENGTH_LONG).show()
-                    if (errMsg.contains("需要Cookies")) {
-                        popupWebview()
-                    } else if (errMsg.contains("timeout"))
-                        Api.BiliplusHost = "https://" + (if (Api.BiliplusHost == "https://www.biliplus.com") "backup" else "www") + ".biliplus.com"
-                }
-
-                override fun onPostExecute(successMsg: String) {
-                    if (successMsg.contains("成功")) {
-                        Toast.makeText(this@MainActivity, successMsg, Toast.LENGTH_LONG).show()
-                        //重启哔哩哔哩
-                        val intent = packageManager.getLaunchIntentForPackage(Settings.clientType.packageName)
-                        intent!!.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                        startActivity(intent)
-                    } else {//创建下载任务, 返回值是创建文件的路径
-                        Toast.makeText(this@MainActivity, "成功: 正在下载文件\n关闭VPN", Toast.LENGTH_LONG).show()
-                        sendBroadcast(Intent("in.zhaoj.shadowsocksr.CLOSE"))//关闭SSR
-                        for (i in 0 until seriesInfo.downloadSegmentInfo.size) {
-                            val downSegInfo = seriesInfo.downloadSegmentInfo[i]
-                            val epInfo = seriesInfo.epInfo[seriesInfo.position]
-                            downloadTask(downSegInfo.url, "$successMsg$i.blv", seriesInfo.title + epInfo.index + epInfo.index_title + i, this@MainActivity)
-                        }
-                    }
-                    val oldPosition = HistoryList[0].position//历史记录中的位置
-                    if (oldPosition != seriesInfo.position) {
-                        HistoryList[0].position = seriesInfo.position
-                        (infoListView.adapter as ArrayAdapter<*>).notifyDataSetChanged()
-                        storeHistory(applicationContext)
-                    }
-                }
-            }.execute()
-
+            DownloadVideo().execute()
         }
         setSupportActionBar(toolbar)
 
@@ -139,7 +100,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("StaticFieldLeak")
-    internal inner class GetList : AsyncTask<String, Void, String>() {
+    internal inner class GetList : AsyncTask<String, Unit, String>() {
         override fun doInBackground(vararg URLs: String): String {
             var id: String//判断URL是ss, ep, av
             var returnValue: String
@@ -198,6 +159,46 @@ class MainActivity : AppCompatActivity() {
             storeHistory(applicationContext)
         }
 
+    }
+    @SuppressLint("StaticFieldLeak")
+    internal inner class DownloadVideo:AsyncTask<Unit, Unit, String>() {
+        override fun doInBackground(vararg params: Unit): String {
+            val returnValue = Utility.downloadVideo(seriesInfo)
+            if (returnValue.substring(0, 2) == "错误") cancel(true)
+            return returnValue
+        }
+
+        override fun onCancelled(errMsg: String) {
+            Toast.makeText(this@MainActivity, errMsg, Toast.LENGTH_LONG).show()
+            if (errMsg.contains("需要Cookies")) {
+                popupWebview()
+            } else if (errMsg.contains("timeout"))
+                Api.BiliplusHost = "https://" + (if (Api.BiliplusHost == "https://www.biliplus.com") "backup" else "www") + ".biliplus.com"
+        }
+
+        override fun onPostExecute(successMsg: String) {
+            if (successMsg.contains("成功")) {
+                Toast.makeText(this@MainActivity, successMsg, Toast.LENGTH_LONG).show()
+                //重启哔哩哔哩
+                val intent = packageManager.getLaunchIntentForPackage(Settings.clientType.packageName)
+                intent!!.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                startActivity(intent)
+            } else {//创建下载任务, 返回值是创建文件的路径
+                Toast.makeText(this@MainActivity, "成功: 正在下载文件\n关闭VPN", Toast.LENGTH_LONG).show()
+                sendBroadcast(Intent("in.zhaoj.shadowsocksr.CLOSE"))//关闭SSR
+                for (i in 0 until seriesInfo.downloadSegmentInfo.size) {
+                    val downSegInfo = seriesInfo.downloadSegmentInfo[i]
+                    val epInfo = seriesInfo.epInfo[seriesInfo.position]
+                    downloadTask(downSegInfo.url, "$successMsg$i.blv", seriesInfo.title + epInfo.index + epInfo.index_title + i, this@MainActivity)
+                }
+            }
+            val oldPosition = HistoryList[0].position//历史记录中的位置
+            if (oldPosition != seriesInfo.position) {
+                HistoryList[0].position = seriesInfo.position
+                (infoListView.adapter as ArrayAdapter<*>).notifyDataSetChanged()
+                storeHistory(applicationContext)
+            }
+        }
     }
 
     /**

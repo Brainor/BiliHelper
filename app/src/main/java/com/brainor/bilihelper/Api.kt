@@ -52,11 +52,11 @@ internal object Api {
             VideoType.Movie, VideoType.VipMovie -> 2
             else -> 1
         }//番剧类型，0普通 1番剧 2电影
-        return "$BiliplusHost/api/geturl?av=$aid&page=%d&bangumi=$bangumi&update=1"
+        return "$BiliplusHost/api/geturl?av=$aid&page=$page&bangumi=$bangumi&update=1"
     }
 
     fun getMediaURL3(cid: Long): String {//HTML5播放器获得视频地址, checked
-        var url="https://bangumi.bilibili.com/player/web_api/v2/playurl?appkey=$appKey&cid=$cid&module=bangumi&otype=json&season_type=1&type="
+        var url = "https://bangumi.bilibili.com/player/web_api/v2/playurl?appkey=$appKey&cid=$cid&module=bangumi&otype=json&season_type=1&type="
         url += "&sign=" + getSign(url, appSecret)
         return url
     }
